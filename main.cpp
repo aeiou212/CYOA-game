@@ -1,80 +1,111 @@
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include "LinkedList.h"
+#include "Player.h"
+#include "RandomEvent.h"
 
-void introduction() {
-    cout << "Welcome to the Castle Adventure!\n";
-    cout << "You will navigate through various rooms in the castle, encountering challenges and making decisions that will determine your path.\n";
-    cout << "Choose your actions wisely. Let's start your journey!\n\n";
+using namespace std;
+
+// Function 1 & 2 (Player Focus)
+void displayPlayerReport(const Player& p) {
+    p.displayStatus();
+}
+void handleSurvivalBonus(Player& p) {
+    static int actions = 0;
+    if (++actions % 3 == 0) {
+        cout << ">> SURVIVOR BONUS: +1 Luck!" << endl;
+        p.addLuck(1);
+    }
 }
 
+// Function 3 & 4 (Item Focus)
+void processLoot(Player& p, Room& r) {
+    if (!r.isSearched() && r.getItem().name != "None") {
+        cout << ">> You scavenged a [" << r.getItem().name << "]!" << endl;
+        p.addItem(r.getItem());
+        r.clearItem();
+        r.setSearched(true);
+    } else {
+        cout << ">> This area has been thoroughly picked over." << endl;
+    }
+}
+string getItemFlavorText(const Item& i) {
+    return "The " + i.name + " feels cold in your hands.";
+}
 
-#include <fstream>
-#include <sstream>
-#include "LinkedList.h"
+// Function 5 & 6 (Event Focus)
+void executeEvent(RandomEvent& re, Player& p) {
+    re.trigger(p);
+}
+bool checkEventSafety(const Player& p) {
+    if (p.getLuck() > 20) {
+        cout << ">> Your intuition warns you of danger. You avoid a trap!" << endl;
+        return true;
+    }
+    return false;
+}
 
 int main() {
-    LinkedList castleRooms;
+    LinkedList castle;
+    Player player;
+    RandomEvent events;
+
     ifstream file("rooms.csv");
     string line;
-
-    // Reading rooms from the CSV file
-    if (file.is_open()) {
-        while (getline(file, line)) {
-            stringstream ss(line);
-            string name, description, actionsStr, item;
-            vector<string> actions;
-
-            getline(ss, name, ',');
-            getline(ss, description, ',');
-            getline(ss, actionsStr, ',');
-            getline(ss, item);
-
-            stringstream actionStream(actionsStr);
-            string action;
-            while (getline(actionStream, action, ';')) {
-                actions.push_back(action);
-            }
-
-            Room newRoom(name, description, actions, item);
-            castleRooms.addRoom(newRoom);
-        }
-        file.close();
-    } else {
-        cout << "Unable to open file" << endl;
+    if (!file.is_open()) {
+        cout << "Error: Place rooms.csv in the same folder as the exe." << endl;
         return 1;
     }
 
-    // Introduction
-    introduction();
-
-    // Interaction with rooms
-    auto current = castleRooms.getHead();
-    while (current != nullptr) {
-        cout << current->room.toString() << endl;
-
-        // Display actions for the current room
-        int actionNum = 1;
-        for (const auto& action : current->room.getActions()) {
-            cout << actionNum++ << ". " << action << endl;
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+        stringstream ss(line);
+        string name, desc, acts, itemName;
+        
+        getline(ss, name, ',');
+        getline(ss, desc, ',');
+        getline(ss, acts, ',');
+        getline(ss, itemName);
+        
+        stringstream as(acts);
+        string action;
+        vector<string> actionList;
+        while (getline(as, action, ';')) {
+            actionList.push_back(action);
         }
 
-        // User chooses an action
-        int choice;
-        cout << "Choose an action (1-" << current->room.getActions().size() << "): ";
-        cin >> choice;
+        castle.addRoom(Room(name, desc, actionList, Item(itemName)));
+    }
 
-        // Process choice
-        if (choice < 1 || choice > current->room.getActions().size()) {
-            cout << "Invalid choice. Try again.\n";
+    auto curr = castle.getHead();
+    while (curr && player.isAlive()) {
+        displayPlayerReport(player);
+        cout << curr->room.toString();
+
+        int count = 1;
+        for (const auto& a : curr->room.getActions()) {
+            cout << count++ << ". " << a << endl;
+        }
+
+        int choice;
+        cout << "\nChoose (1-" << curr->room.getActions().size() << "): ";
+        if (!(cin >> choice)) break;
+
+        if (choice == (int)curr->room.getActions().size()) {
+            curr = curr->next;
         } else {
-            cout << "You chose: " << current->room.getActions()[choice - 1] << endl;
-            if (choice == current->room.getActions().size()) {  // Assumes 'Leave the room' is the last action
-                current = current->next;  // Move to next room
-            }
+            if (!checkEventSafety(player)) executeEvent(events, player);
+            processLoot(player, curr->room);
+            handleSurvivalBonus(player);
+        }
+
+        if (!player.isAlive()) {
+            cout << "\n*** GAME OVER ***\nYou died after finding " << player.getInvSize() << " items." << endl;
+            return 0;
         }
     }
 
-    cout << "You have reached the end of your adventure!\n";
+    cout << "\nCongratulations! You escaped the castle!" << endl;
     return 0;
 }

@@ -1,29 +1,29 @@
-// Room.h
 #ifndef ROOM_H
 #define ROOM_H
 
 #include <string>
 #include <vector>
-using namespace std;
+#include "Item.h"
 
 class Room {
 private:
-    string name;
-    string description;
-    vector<string> actions;  // Vector to store multiple actions
-    string item;
+    std::string name;
+    std::string description;
+    std::vector<std::string> actions;
+    Item item;
+    bool searched;
 
 public:
-    Room(string name, string description, vector<string> actions, string item);
-    void setName(const string& newName);
-    void setDescription(const string& newDescription);
-    void setActions(const vector<string>& newActions);
-    void setItem(const string& newItem);
-    string getName() const;
-    string getDescription() const;
-    vector<string> getActions() const;
-    string getItem() const;
-    string toString() const;
+    Room(std::string n, std::string d, std::vector<std::string> a, Item i);
+
+    void setSearched(bool s) { searched = s; }
+    bool isSearched() const { return searched; }
+    Item getItem() const { return item; }
+    void clearItem() { item = Item("None"); }
+    std::string getName() const { return name; }
+    std::string getDescription() const { return description; }
+    std::vector<std::string> getActions() const { return actions; }
+    std::string toString() const;
 };
 
 #endif

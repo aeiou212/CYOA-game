@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++11 -Wall
 TARGET = adventure
 SOURCES = main.cpp LinkedList.cpp Room.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
