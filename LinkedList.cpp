@@ -1,3 +1,4 @@
+//heyyy
 #include "LinkedList.h"
 
 void LinkedList::addRoom(const Room& room) {
@@ -7,7 +8,7 @@ void LinkedList::addRoom(const Room& room) {
     } else {
         auto current = head;
         while (current->next) {
-            current = current->next;
+            current = current->next;  
         }
         current->next = newNode;
     }
