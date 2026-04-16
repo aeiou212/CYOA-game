@@ -1,4 +1,4 @@
-//heyyy
+
 #include "LinkedList.h"
 
 void LinkedList::addRoom(const Room& room) {
