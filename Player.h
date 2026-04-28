@@ -12,6 +12,7 @@ private:
     int health;
     int money;
     int luck;
+    int damage;
     Inventory inventory;
 
 public:
@@ -25,6 +26,7 @@ public:
     int getHealth() const;
     int getMoney() const;
     int getLuck() const;
+    int getDamage() const;
     int getInvSize() const;
     bool isAlive() const;
     

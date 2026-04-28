@@ -8,6 +8,7 @@
 #include "Player.h"
 #include "RandomEvent.h"
 #include "Shop.h"
+#include "Combat.h"
 
 using namespace std;
 
@@ -85,6 +86,7 @@ int main() {
     LinkedList castle;
     Player player;
     RandomEvent events;
+    Combat combat;
 
     ifstream file("rooms.csv");
     string line;
@@ -101,7 +103,11 @@ int main() {
         getline(ss, name, ',');
         getline(ss, desc, ',');
         getline(ss, acts, ',');
-        getline(ss, itemName);
+        getline(ss, itemName, ',');
+        string enemyName, enemyHealthStr, enemyDamageStr;
+        getline(ss, enemyName, ',');
+        getline(ss, enemyHealthStr, ',');
+        getline(ss, enemyDamageStr);
         
         stringstream as(acts);
         string action;
@@ -110,7 +116,14 @@ int main() {
             actionList.push_back(action);
         }
 
-        castle.addRoom(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, std::vector<Enemy>{}));
+        vector<Enemy> enemies;
+        if (!enemyName.empty()) {
+            int eh = stoi(enemyHealthStr);
+            int ed = stoi(enemyDamageStr);
+            enemies.push_back(Enemy(enemyName, eh, ed));
+        }
+
+        castle.addRoom(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, enemies));
     }
 
     Shop shop;
@@ -145,6 +158,13 @@ int main() {
         } else if (chosenAction == "Visit Shop") {
             visitShop(shop, player);
         } else {
+            // Combat first
+            for (auto& enemy : curr->room.getEnemies()) {
+                if (!combat.fight(player, enemy)) {
+                    cout << "\n*** GAME OVER ***\nYou died after finding " << player.getInvSize() << " items." << endl;
+                    return 0;
+                }
+            }
             if (!checkEventSafety(player)) executeEvent(events, player);
             processLoot(player, curr->room);
             handleSurvivalBonus(player);
