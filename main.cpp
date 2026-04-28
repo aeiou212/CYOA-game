@@ -24,10 +24,12 @@ void handleSurvivalBonus(Player& p) {
 
 // Function 3 & 4 (Item Focus)
 void processLoot(Player& p, Room& r) {
-    if (!r.isSearched() && r.getItem().name != "None") {
-        cout << ">> You scavenged a [" << r.getItem().name << "]!" << endl;
-        p.addItem(r.getItem());
-        r.clearItem();
+    if (!r.isSearched() && !r.getItems().empty()) {
+        for (const auto& item : r.getItems()) {
+            cout << ">> You scavenged a [" << item.name << "]!" << endl;
+            p.addItem(item);
+        }
+        r.clearItems();
         r.setSearched(true);
     } else {
         cout << ">> This area has been thoroughly picked over." << endl;
@@ -78,7 +80,7 @@ int main() {
             actionList.push_back(action);
         }
 
-        castle.addRoom(Room(name, desc, actionList, Item(itemName)));
+        castle.addRoom(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, std::vector<Enemy>{}));
     }
 
     auto curr = castle.getHead();
