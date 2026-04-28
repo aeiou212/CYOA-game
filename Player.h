@@ -5,13 +5,14 @@
 #include <string>
 #include <iostream>
 #include "Item.h"
+#include "Inventory.h"
 
 class Player {
 private:
     int health;
     int money;
     int luck;
-    std::vector<Item> inventory;
+    Inventory inventory;
 
 public:
     Player() : health(100), money(50), luck(5) {}
@@ -19,11 +20,11 @@ public:
     void adjustHealth(int amount) { health += amount; }
     void adjustMoney(int amount) { money += amount; }
     void addLuck(int amount) { luck += amount; }
-    void addItem(Item item) { inventory.push_back(item); }
+    void addItem(Item item) { inventory.add(item); }
 
     int getHealth() const { return health; }
     int getLuck() const { return luck; }
-    int getInvSize() const { return (int)inventory.size(); }
+    int getInvSize() const { return inventory.getSize(); }
     bool isAlive() const { return health > 0; }
     
     void displayStatus() const {
@@ -31,8 +32,8 @@ public:
         std::cout << "\n========================================" << std::endl;
         std::cout << " STATUS: " << condition << " | HP: " << health << " | Gold: " << money << " | Luck: " << luck << std::endl;
         std::cout << " INV: ";
-        if(inventory.empty()) std::cout << "Empty";
-        for (const auto& item : inventory) std::cout << "[" << item.name << "] ";
+        if(inventory.getSize() == 0) std::cout << "Empty";
+        for (const auto& item : inventory.getItems()) std::cout << "[" << item.name << "] ";
         std::cout << "\n========================================" << std::endl;
     }
 };
