@@ -4,11 +4,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "LinkedList.h"
 #include "Player.h"
 #include "RandomEvent.h"
 #include "Shop.h"
 #include "Combat.h"
+#include "SaveSystem.h"
 
 using namespace std;
 
@@ -83,10 +85,11 @@ void visitShop(Shop& shop, Player& player) {
 }
 
 int main() {
-    LinkedList castle;
+    std::vector<Room> rooms;
     Player player;
     RandomEvent events;
     Combat combat;
+    SaveSystem saveSystem;
 
     ifstream file("rooms.csv");
     string line;
@@ -123,7 +126,7 @@ int main() {
             enemies.push_back(Enemy(enemyName, eh, ed));
         }
 
-        castle.addRoom(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, enemies));
+        rooms.push_back(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, enemies));
     }
 
     Shop shop;
@@ -131,42 +134,69 @@ int main() {
     shop.addItem(Item("Shield", "Uncommon", 8, 40));
     shop.addItem(Item("Potion", "Common", 1, 20));
 
-    auto curr = castle.getHead();
-    while (curr && player.isAlive()) {
+    size_t currentIndex = 0;
+    cout << "Load save? (y/n): ";
+    char loadChoice;
+    cin >> loadChoice;
+    if (loadChoice == 'y' || loadChoice == 'Y') {
+        if (saveSystem.load(player, currentIndex)) {
+            cout << ">> Save loaded!" << endl;
+        } else {
+            cout << ">> No save found, starting new game." << endl;
+            currentIndex = 0;
+        }
+    } else {
+        currentIndex = 0;
+    }
+    cin.ignore(1000, '\n');
+
+    while (currentIndex < rooms.size() && player.isAlive()) {
         displayPlayerReport(player);
-        cout << curr->room.toString();
+        cout << rooms[currentIndex].toString();
 
         int count = 1;
-        for (const auto& a : curr->room.getActions()) {
+        for (const auto& a : rooms[currentIndex].getActions()) {
             cout << count++ << ". " << a << endl;
         }
+        cout << "9. Save Game" << endl;
 
         int choice;
-        cout << "\nChoose (1-" << curr->room.getActions().size() << "): ";
+        cout << "\nChoose (1-9): ";
         if (!(cin >> choice)) break;
         cin.ignore(1000, '\n');
 
-        if (choice < 1 || choice > (int)curr->room.getActions().size()) {
-            cout << "Invalid choice. Please choose a number between 1 and " << curr->room.getActions().size() << "." << endl;
+        if (choice < 1 || choice > 9) {
+            cout << "Invalid choice. Please choose a number between 1 and 9." << endl;
             continue;
         }
 
-        string chosenAction = curr->room.getActions()[choice-1];
+        string chosenAction;
+        if (choice == 9) {
+            chosenAction = "Save Game";
+        } else if (choice >= 1 && choice < count) {
+            chosenAction = rooms[currentIndex].getActions()[choice-1];
+        } else {
+            cout << "Invalid choice." << endl;
+            continue;
+        }
 
         if (chosenAction == "Leave the room") {
-            curr = curr->next;
+            currentIndex++;
         } else if (chosenAction == "Visit Shop") {
             visitShop(shop, player);
+        } else if (chosenAction == "Save Game") {
+            saveSystem.save(player, currentIndex);
+            cout << ">> Game saved!" << endl;
         } else {
             // Combat first
-            for (auto& enemy : curr->room.getEnemies()) {
+            for (auto& enemy : rooms[currentIndex].getEnemies()) {
                 if (!combat.fight(player, enemy)) {
                     cout << "\n*** GAME OVER ***\nYou died after finding " << player.getInvSize() << " items." << endl;
                     return 0;
                 }
             }
             if (!checkEventSafety(player)) executeEvent(events, player);
-            processLoot(player, curr->room);
+            processLoot(player, rooms[currentIndex]);
             handleSurvivalBonus(player);
         }
 
@@ -176,6 +206,8 @@ int main() {
         }
     }
 
-    cout << "\nCongratulations! You escaped the castle!" << endl;
+    if (currentIndex >= rooms.size()) {
+        cout << "\nCongratulations! You escaped the castle!" << endl;
+    }
     return 0;
 }

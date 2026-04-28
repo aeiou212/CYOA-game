@@ -33,6 +33,7 @@ public:
     void displayStatus() const;
 
     Inventory& getInventory();
+    const Inventory& getInventory() const;
     bool hasItem(const std::string& name);
     void removeItem(const std::string& name);
 };

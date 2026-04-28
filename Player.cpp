@@ -25,5 +25,6 @@ void Player::displayStatus() const {
 }
 
 Inventory& Player::getInventory() { return inventory; }
+const Inventory& Player::getInventory() const { return inventory; }
 bool Player::hasItem(const std::string& name) { return inventory.search(name) != nullptr; }
 void Player::removeItem(const std::string& name) { inventory.remove(name); }
