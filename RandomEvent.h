@@ -16,7 +16,7 @@ public:
 
     // Trigger a random event that modifies the player's state.
     // Uses the player's luck to influence event outcomes.
-    void trigger(Player& player);
+    std::string trigger(Player& player);
 };
 
 #endif

@@ -18,38 +18,40 @@ using namespace std;
 void displayPlayerReport(const Player& p) {
     p.displayStatus();
 }
-void handleSurvivalBonus(Player& p) {
+std::string handleSurvivalBonus(Player& p) {
     static int actions = 0;
     if (++actions % 3 == 0) {
-        cout << ">> SURVIVOR BONUS: +1 Luck!" << endl;
         p.addLuck(1);
+        return ">> SURVIVOR BONUS: +1 Luck!\n";
     }
+    return std::string();
 }
 
 // Function 3 & 4 (Item Focus)
-void processLoot(Player& p, Room& r) {
+std::string processLoot(Player& p, Room& r) {
+    std::string result;
     if (!r.isSearched() && !r.getItems().empty()) {
         for (const auto& item : r.getItems()) {
-            cout << ">> You scavenged a [" << item.name << "]!" << endl;
+            result += ">> You scavenged a [" + item.name + "]!\n";
             p.addItem(item);
         }
         r.clearItems();
         r.setSearched(true);
     } else {
-        cout << ">> This area has been thoroughly picked over." << endl;
+        result += ">> This area has been thoroughly picked over.\n";
     }
+    return result;
 }
 string getItemFlavorText(const Item& i) {
     return "The " + i.name + " feels cold in your hands.";
 }
 
 // Function 5 & 6 (Event Focus)
-void executeEvent(RandomEvent& re, Player& p) {
-    re.trigger(p);
+std::string executeEvent(RandomEvent& re, Player& p) {
+    return re.trigger(p);
 }
 bool checkEventSafety(const Player& p) {
     if (p.getLuck() > 20) {
-        cout << ">> Your intuition warns you of danger. You avoid a trap!" << endl;
         return true;
     }
     return false;
@@ -150,8 +152,13 @@ int main() {
     }
     cin.ignore(1000, '\n');
 
+    std::string turnMessages;
     while (currentIndex < rooms.size() && player.isAlive()) {
         displayPlayerReport(player);
+        if (!turnMessages.empty()) {
+            cout << endl << turnMessages << endl;
+            turnMessages.clear();
+        }
         cout << rooms[currentIndex].toString();
 
         int count = 1;
@@ -195,9 +202,13 @@ int main() {
                     return 0;
                 }
             }
-            if (!checkEventSafety(player)) executeEvent(events, player);
-            processLoot(player, rooms[currentIndex]);
-            handleSurvivalBonus(player);
+            if (player.getLuck() > 20) {
+                turnMessages += ">> Your intuition warns you of danger. You avoid a trap!\n";
+            } else {
+                turnMessages += events.trigger(player);
+            }
+            turnMessages += processLoot(player, rooms[currentIndex]);
+            turnMessages += handleSurvivalBonus(player);
         }
 
         if (!player.isAlive()) {
