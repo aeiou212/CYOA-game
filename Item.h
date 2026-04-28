@@ -13,8 +13,7 @@ public:
     int price;
 
     // Create an item with optional values and default common values.
-    Item(std::string n = "None", std::string r = "Common", int w = 1, int p = 0)
-        : name(n), rarity(r), weight(w), price(p) {}
+    Item(std::string n = "None", std::string r = "Common", int w = 1, int p = 0);
 };
 
 #endif

@@ -13,8 +13,7 @@ public:
 
     // Create an enemy with an optional name, health, and damage.
     // Defaults are provided for a basic Goblin enemy.
-    Enemy(std::string n = "Goblin", int h = 20, int d = 5)
-        : name(n), health(h), damage(d) {}
+    Enemy(std::string n = "Goblin", int h = 20, int d = 5);
 };
 
 #endif
