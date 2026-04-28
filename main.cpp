@@ -87,7 +87,8 @@ void visitShop(Shop& shop, Player& player) {
 }
 
 int main() {
-    std::vector<Room> rooms;
+    LinkedList rooms;
+    size_t roomCount = 0;
     Player player;
     RandomEvent events;
     Combat combat;
@@ -128,7 +129,8 @@ int main() {
             enemies.push_back(Enemy(enemyName, eh, ed));
         }
 
-        rooms.push_back(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, enemies));
+        rooms.addRoom(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, enemies));
+        ++roomCount;
     }
 
     Shop shop;
@@ -137,6 +139,7 @@ int main() {
     shop.addItem(Item("Potion", "Common", 1, 20));
 
     size_t currentIndex = 0;
+    auto currentRoom = rooms.getHead();
     cout << "Load save? (y/n): ";
     char loadChoice;
     cin >> loadChoice;
@@ -152,17 +155,22 @@ int main() {
     }
     cin.ignore(1000, '\n');
 
+    currentRoom = rooms.getHead();
+    for (size_t i = 0; i < currentIndex && currentRoom; ++i) {
+        currentRoom = currentRoom->next;
+    }
+
     std::string turnMessages;
-    while (currentIndex < rooms.size() && player.isAlive()) {
+    while (currentRoom && currentIndex < roomCount && player.isAlive()) {
         displayPlayerReport(player);
         if (!turnMessages.empty()) {
             cout << endl << turnMessages << endl;
             turnMessages.clear();
         }
-        cout << rooms[currentIndex].toString();
+        cout << currentRoom->room.toString();
 
         int count = 1;
-        for (const auto& a : rooms[currentIndex].getActions()) {
+        for (const auto& a : currentRoom->room.getActions()) {
             cout << count++ << ". " << a << endl;
         }
         cout << "9. Save Game" << endl;
@@ -181,7 +189,7 @@ int main() {
         if (choice == 9) {
             chosenAction = "Save Game";
         } else if (choice >= 1 && choice < count) {
-            chosenAction = rooms[currentIndex].getActions()[choice-1];
+            chosenAction = currentRoom->room.getActions()[choice-1];
         } else {
             cout << "Invalid choice." << endl;
             continue;
@@ -189,6 +197,7 @@ int main() {
 
         if (chosenAction == "Leave the room") {
             currentIndex++;
+            if (currentRoom) currentRoom = currentRoom->next;
         } else if (chosenAction == "Visit Shop") {
             visitShop(shop, player);
         } else if (chosenAction == "Save Game") {
@@ -196,7 +205,7 @@ int main() {
             cout << ">> Game saved!" << endl;
         } else {
             // Combat first
-            for (auto& enemy : rooms[currentIndex].getEnemies()) {
+            for (auto& enemy : currentRoom->room.getEnemies()) {
                 if (!combat.fight(player, enemy)) {
                     cout << "\n*** GAME OVER ***\nYou died after finding " << player.getInvSize() << " items." << endl;
                     return 0;
@@ -207,7 +216,7 @@ int main() {
             } else {
                 turnMessages += events.trigger(player);
             }
-            turnMessages += processLoot(player, rooms[currentIndex]);
+            turnMessages += processLoot(player, currentRoom->room);
             turnMessages += handleSurvivalBonus(player);
         }
 
@@ -217,7 +226,7 @@ int main() {
         }
     }
 
-    if (currentIndex >= rooms.size()) {
+    if (currentIndex >= roomCount) {
         cout << "\nCongratulations! You escaped the castle!" << endl;
     }
     return 0;

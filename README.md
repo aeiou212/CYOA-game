@@ -46,8 +46,6 @@ After compilation, execute:
 - Esteban Mora
 - Andreas Hitt
 
-/*
 Source: Copilot
 Modified by: Esteban Mora
 Changes: added Readme.md
-*/
