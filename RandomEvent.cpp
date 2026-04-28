@@ -1,7 +1,10 @@
 #include "RandomEvent.h"
 
+// Seed the random number generator when the RandomEvent system is created.
 RandomEvent::RandomEvent() { srand(static_cast<unsigned int>(time(0))); }
 
+// Trigger a random event that affects the player.
+// The event outcome is determined by a random roll and the player's luck.
 void RandomEvent::trigger(Player& player) {
     int roll = rand() % 100;
     int luckMod = player.getLuck() / 2; 

@@ -1,9 +1,11 @@
 #include "Shop.h"
 
+// Add a new item to the shop inventory.
 void Shop::addItem(Item item) {
     items.push_back(item);
 }
 
+// Display the shop's current items with price and weight details.
 void Shop::displayItems() const {
     std::cout << "\n=== SHOP INVENTORY ===" << std::endl;
     if (items.empty()) {
@@ -17,6 +19,8 @@ void Shop::displayItems() const {
     std::cout << "=======================" << std::endl;
 }
 
+// Attempt to buy an item from the shop for the player.
+// The player must have enough money to purchase the item.
 bool Shop::buyItem(const std::string& name, Player& player) {
     for (auto it = items.begin(); it != items.end(); ++it) {
         if (it->name == name) {
@@ -36,6 +40,8 @@ bool Shop::buyItem(const std::string& name, Player& player) {
     return false;
 }
 
+// Attempt to sell an item from the player's inventory.
+// The shop grants a fixed sell price based on the item name.
 bool Shop::sellItem(const std::string& name, Player& player) {
     // For simplicity, sell at half price. In a real game, might check if item was bought here.
     // But since inventory doesn't track buy price, we'll assume a sell price based on rarity.

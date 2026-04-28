@@ -1,6 +1,8 @@
 #include "Combat.h"
 #include <iostream>
 
+// Run a turn-based fight between the player and a single enemy.
+// The player attacks first, then the enemy attacks, until one is defeated.
 bool Combat::fight(Player& player, Enemy& enemy) {
     std::cout << "\n>> A " << enemy.name << " appears! Health: " << enemy.health << std::endl;
     

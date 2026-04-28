@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 
+// Save the player's state and current room index to a file.
 void SaveSystem::save(const Player& player, size_t currentRoomIndex) {
     std::ofstream file(filename);
     if (!file) return;
@@ -20,6 +21,8 @@ void SaveSystem::save(const Player& player, size_t currentRoomIndex) {
     file.close();
 }
 
+// Load saved player state and current room index from a file.
+// Returns true when the load succeeds.
 bool SaveSystem::load(Player& player, size_t& currentRoomIndex) {
     std::ifstream file(filename);
     if (!file) return false;
