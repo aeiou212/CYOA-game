@@ -7,6 +7,7 @@
 #include "LinkedList.h"
 #include "Player.h"
 #include "RandomEvent.h"
+#include "Shop.h"
 
 using namespace std;
 
@@ -51,6 +52,35 @@ bool checkEventSafety(const Player& p) {
     return false;
 }
 
+// Shop Function
+void visitShop(Shop& shop, Player& player) {
+    cout << "\n>> You enter the castle shop!" << endl;
+    while (true) {
+        shop.displayItems();
+        cout << "\nOptions: buy <item_name>, sell <item_name>, leave" << endl;
+        cout << "Your gold: " << player.getMoney() << endl;
+        cout << "> ";
+        string command;
+        getline(cin, command);
+        if (command == "leave") break;
+        size_t space = command.find(' ');
+        if (space == string::npos) {
+            cout << "Invalid command." << endl;
+            continue;
+        }
+        string action = command.substr(0, space);
+        string itemName = command.substr(space + 1);
+        if (action == "buy") {
+            shop.buyItem(itemName, player);
+        } else if (action == "sell") {
+            shop.sellItem(itemName, player);
+        } else {
+            cout << "Invalid action." << endl;
+        }
+    }
+    cout << ">> You leave the shop." << endl;
+}
+
 int main() {
     LinkedList castle;
     Player player;
@@ -83,6 +113,11 @@ int main() {
         castle.addRoom(Room(name, desc, actionList, std::vector<Item>{Item(itemName)}, std::vector<Enemy>{}));
     }
 
+    Shop shop;
+    shop.addItem(Item("Sword", "Rare", 5, 50));
+    shop.addItem(Item("Shield", "Uncommon", 8, 40));
+    shop.addItem(Item("Potion", "Common", 1, 20));
+
     auto curr = castle.getHead();
     while (curr && player.isAlive()) {
         displayPlayerReport(player);
@@ -96,9 +131,19 @@ int main() {
         int choice;
         cout << "\nChoose (1-" << curr->room.getActions().size() << "): ";
         if (!(cin >> choice)) break;
+        cin.ignore(1000, '\n');
 
-        if (choice == (int)curr->room.getActions().size()) {
+        if (choice < 1 || choice > (int)curr->room.getActions().size()) {
+            cout << "Invalid choice. Please choose a number between 1 and " << curr->room.getActions().size() << "." << endl;
+            continue;
+        }
+
+        string chosenAction = curr->room.getActions()[choice-1];
+
+        if (chosenAction == "Leave the room") {
             curr = curr->next;
+        } else if (chosenAction == "Visit Shop") {
+            visitShop(shop, player);
         } else {
             if (!checkEventSafety(player)) executeEvent(events, player);
             processLoot(player, curr->room);
